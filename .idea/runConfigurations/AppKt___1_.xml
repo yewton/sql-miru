@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="AppKt 異常系 (1)" type="JetRunConfigurationType">
+    <option name="MAIN_CLASS_NAME" value="net.yewton.sqlmiru.AppKt" />
+    <module name="sql-miru.main" />
+    <option name="PROGRAM_PARAMETERS" value="examples/module-a examples/module-b examples/odule-c" />
+    <shortenClasspath name="NONE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

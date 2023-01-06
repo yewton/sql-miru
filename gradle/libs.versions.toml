@@ -5,6 +5,8 @@ picocli = "4.7.0"
 [libraries]
 picocli-codegen = { module = "info.picocli:picocli-codegen", version.ref = "picocli" }
 picocli-core = { module = "info.picocli:picocli", version.ref = "picocli" }
+jsqlparser = "com.github.jsqlparser:jsqlparser:4.5"
+kotlinx-coroutines-core-jvm = "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

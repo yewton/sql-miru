@@ -15,6 +15,8 @@ repositories {
 
 dependencies {
     implementation(libs.picocli.core)
+    implementation(libs.jsqlparser)
+    implementation(libs.kotlinx.coroutines.core.jvm)
     kapt(libs.picocli.codegen)
 }
 

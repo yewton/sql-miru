@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.versions)
     alias(libs.plugins.version.catalog.update)
+    alias(libs.plugins.kotlinter)
 }
 
 group = "net.yewton"

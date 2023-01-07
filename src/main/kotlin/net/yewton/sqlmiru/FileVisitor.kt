@@ -21,15 +21,17 @@ class FileVisitor(val moduleName: String) : SimpleFileVisitor<Path>() {
         val tableInfoCollector = TableInfoCollector(moduleName, file)
         val tablesNamesFinder = TablesNamesFinder()
         val sqlBody = file.readText()
-                .replace(Regex("--.*$"), "")
-                .replace(Regex("""/\*.*?\*/""", RegexOption.DOT_MATCHES_ALL), " ")
+            .replace(Regex("--.*$"), "")
+            .replace(Regex("""/\*.*?\*/""", RegexOption.DOT_MATCHES_ALL), " ")
         try {
             val statements = CCJSqlParserUtil.parseStatements(sqlBody)
             statements.accept(tableInfoCollector)
             mutatingTableInfoList.addAll(tableInfoCollector.tableInfoList)
-            tableNames.addAll(statements.statements.flatMap {
-                tablesNamesFinder.getTableList(it)
-            })
+            tableNames.addAll(
+                statements.statements.flatMap {
+                    tablesNamesFinder.getTableList(it)
+                }
+            )
         } catch (e: Exception) {
             fallbackPattern.findAll(sqlBody).forEach {
                 val tableName = it.groupValues[2]

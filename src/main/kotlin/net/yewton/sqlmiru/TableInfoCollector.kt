@@ -1,5 +1,6 @@
 package net.yewton.sqlmiru
 
+import java.nio.file.Path
 import net.sf.jsqlparser.schema.Table
 import net.sf.jsqlparser.statement.Block
 import net.sf.jsqlparser.statement.Commit
@@ -46,7 +47,6 @@ import net.sf.jsqlparser.statement.truncate.Truncate
 import net.sf.jsqlparser.statement.update.Update
 import net.sf.jsqlparser.statement.upsert.Upsert
 import net.sf.jsqlparser.statement.values.ValuesStatement
-import java.nio.file.Path
 
 class TableInfoCollector(private val moduleName: String, private val sqlFilePath: Path) : StatementVisitor {
     val tableInfoList = mutableListOf<TableInfo>()
@@ -108,120 +108,89 @@ class TableInfoCollector(private val moduleName: String, private val sqlFilePath
     }
 
     override fun visit(createIndex: CreateIndex?) {
-
     }
 
     override fun visit(aThis: CreateSchema?) {
-
     }
 
     override fun visit(createTable: CreateTable?) {
-
     }
 
     override fun visit(createView: CreateView?) {
-
     }
 
     override fun visit(alterView: AlterView?) {
-
     }
 
     override fun visit(alter: Alter?) {
-
     }
 
-
     override fun visit(execute: Execute?) {
-
     }
 
     override fun visit(set: SetStatement?) {
-
     }
 
     override fun visit(reset: ResetStatement?) {
-
     }
 
     override fun visit(set: ShowColumnsStatement?) {
-
     }
 
     override fun visit(showTables: ShowTablesStatement?) {
-
     }
 
-
     override fun visit(use: UseStatement?) {
-
     }
 
     override fun visit(block: Block?) {
-
     }
 
     override fun visit(values: ValuesStatement?) {
-
     }
 
     override fun visit(describe: DescribeStatement?) {
-
     }
 
     override fun visit(aThis: ExplainStatement?) {
-
     }
 
     override fun visit(aThis: ShowStatement?) {
-
     }
 
     override fun visit(aThis: DeclareStatement?) {
-
     }
 
     override fun visit(grant: Grant?) {
-
     }
 
     override fun visit(createSequence: CreateSequence?) {
-
     }
 
     override fun visit(alterSequence: AlterSequence?) {
-
     }
 
     override fun visit(createFunctionalStatement: CreateFunctionalStatement?) {
-
     }
 
     override fun visit(createSynonym: CreateSynonym?) {
-
     }
 
     override fun visit(alterSession: AlterSession?) {
-
     }
 
     override fun visit(aThis: IfElseStatement?) {
-
     }
 
     override fun visit(renameTableStatement: RenameTableStatement?) {
-
     }
 
     override fun visit(purgeStatement: PurgeStatement?) {
-
     }
 
     override fun visit(alterSystemStatement: AlterSystemStatement?) {
-
     }
 
     override fun visit(unsupportedStatement: UnsupportedStatement?) {
-
     }
 }

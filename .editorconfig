@@ -1,0 +1,12 @@
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+ktlint_code_style = official
+ij_kotlin_imports_layout = *, java.**, javax.**, kotlin.**, ^ # default IntelliJ IDEA style, same as alphabetical, but with "java", "javax", "kotlin" and alias imports in the end of the imports list
+ktlint_no-wildcard-imports = true

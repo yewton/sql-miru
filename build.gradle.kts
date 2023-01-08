@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.versions)
     alias(libs.plugins.version.catalog.update)
-    alias(libs.plugins.kotlinter)
+    alias(libs.plugins.detekt)
     alias(libs.plugins.spotless)
 }
 
@@ -22,6 +22,7 @@ dependencies {
     implementation(libs.jsqlparser)
     implementation(libs.kotlinx.coroutines.core.jvm)
     kapt(libs.picocli.codegen)
+    detektPlugins(libs.detekt.formatting)
 }
 
 kapt {
@@ -57,9 +58,14 @@ tasks.dependencyUpdates {
 
 spotless {
     format("text") {
-        target(".gitignore", ".gitattributes", "*.toml", ".properties")
+        target(".gitignore", ".gitattributes", "*.toml", "*.properties", "*.yml")
         trimTrailingWhitespace()
         endWithNewline()
         encoding(StandardCharsets.UTF_8.name())
     }
+}
+
+detekt {
+     config = files("config/detekt/detekt.yml")
+    basePath = rootProject.projectDir.absolutePath
 }

@@ -12,8 +12,18 @@ import kotlin.io.path.readText
 class FileVisitor(val moduleName: String) : SimpleFileVisitor<Path>() {
     val mutatingTableInfoList = mutableListOf<TableInfo>()
     val tableNames = mutableListOf<String>()
-    private val fallbackPattern = Regex("""(update|insert|delete|merge|upsert|into)\s+((?!(?:into|from|set|all|wait|nowait|of|dual))(?:\w+\.)?\w+)""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
-    private val fallbackPattern2 = Regex("""(from|join)\s+((?!(?:into|from|set|all|wait|nowait|of|dual))(?:\w+\.)?\w+)""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+
+    private val fallbackPattern: Regex
+    private val fallbackPattern2: Regex
+
+    init {
+        val regexOptions = setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
+        // language=regexp
+        val tableNamePattern = """\s+((?!(?:into|from|set|all|wait|nowait|of|dual))(?:\w+\.)?\w+)"""
+        fallbackPattern = Regex("""(update|insert|delete|merge|upsert|into)$tableNamePattern""", regexOptions)
+        fallbackPattern2 = Regex("""(from|join)$tableNamePattern""", regexOptions)
+    }
+
     override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
         if (file.extension != "sql") {
             return FileVisitResult.CONTINUE
@@ -32,8 +42,10 @@ class FileVisitor(val moduleName: String) : SimpleFileVisitor<Path>() {
                     tablesNamesFinder.getTableList(it)
                 }
             )
-        } catch (e: Exception) {
-            fallbackPattern.findAll(sqlBody).forEach {
+        } catch (@Suppress(
+            "TooGenericExceptionCaught",
+            "SwallowedException") e: Exception) {
+                           fallbackPattern.findAll(sqlBody).forEach {
                 val tableName = it.groupValues[2]
                 mutatingTableInfoList.add(TableInfo(moduleName, file, it.groupValues[1].uppercase(), tableName, true))
                 tableNames.add(tableName)

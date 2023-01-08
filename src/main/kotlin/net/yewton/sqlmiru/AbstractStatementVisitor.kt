@@ -47,7 +47,7 @@ import net.sf.jsqlparser.statement.upsert.Upsert
 import net.sf.jsqlparser.statement.values.ValuesStatement
 
 @Suppress("TooManyFunctions")
-abstract class AbstractStatementVisitor: StatementVisitor {
+abstract class AbstractStatementVisitor : StatementVisitor {
     override fun visit(analyze: Analyze) {
         // no-op
     }

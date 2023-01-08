@@ -42,10 +42,13 @@ class FileVisitor(val moduleName: String) : SimpleFileVisitor<Path>() {
                     tablesNamesFinder.getTableList(it)
                 }
             )
-        } catch (@Suppress(
-            "TooGenericExceptionCaught",
-            "SwallowedException") e: Exception) {
-                           fallbackPattern.findAll(sqlBody).forEach {
+        } catch (
+            @Suppress(
+                "TooGenericExceptionCaught",
+                "SwallowedException"
+            ) e: Exception
+        ) {
+            fallbackPattern.findAll(sqlBody).forEach {
                 val tableName = it.groupValues[2]
                 mutatingTableInfoList.add(TableInfo(moduleName, file, it.groupValues[1].uppercase(), tableName, true))
                 tableNames.add(tableName)

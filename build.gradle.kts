@@ -1,6 +1,7 @@
 import java.nio.charset.StandardCharsets
 
-@Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once https://github.com/gradle/gradle/issues/22797 is fixed
+@Suppress("DSL_SCOPE_VIOLATION", "ForbiddenComment")
+// TODO: Remove once https://github.com/gradle/gradle/issues/22797 is fixed
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.kapt)
@@ -66,6 +67,8 @@ spotless {
 }
 
 detekt {
-     config = files("config/detekt/detekt.yml")
+    config = files("config/detekt/detekt.yml")
     basePath = rootProject.projectDir.absolutePath
+    buildUponDefaultConfig = true
+    source = files(rootDir)
 }

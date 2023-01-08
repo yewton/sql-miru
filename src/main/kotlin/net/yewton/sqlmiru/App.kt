@@ -1,11 +1,5 @@
 package net.yewton.sqlmiru
 
-import java.nio.file.Files
-import java.nio.file.Path
-import java.util.concurrent.Callable
-import kotlin.io.path.isDirectory
-import kotlin.io.path.name
-import kotlin.system.exitProcess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -14,6 +8,12 @@ import kotlinx.coroutines.withContext
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.concurrent.Callable
+import kotlin.io.path.isDirectory
+import kotlin.io.path.name
+import kotlin.system.exitProcess
 
 @Command(
     name = "sql-miru",

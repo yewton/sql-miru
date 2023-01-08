@@ -78,4 +78,5 @@ class App : Callable<Int> {
     }
 }
 
+@Suppress("SpreadOperator")
 fun main(args: Array<String>): Unit = exitProcess(CommandLine(App()).execute(*args))

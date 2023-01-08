@@ -1,3 +1,5 @@
+import java.nio.charset.StandardCharsets
+
 @Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once https://github.com/gradle/gradle/issues/22797 is fixed
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -5,6 +7,7 @@ plugins {
     alias(libs.plugins.versions)
     alias(libs.plugins.version.catalog.update)
     alias(libs.plugins.kotlinter)
+    alias(libs.plugins.spotless)
 }
 
 group = "net.yewton"
@@ -42,12 +45,21 @@ tasks.dependencyUpdates {
         componentSelection {
             all {
                 val rejected = listOf("alpha", "beta", "rc", "cr", "m", "preview", "b", "ea")
-                        .map { qualifier -> Regex("(?i).*[.-]$qualifier[.\\d-+]*") }
-                        .any { it.matches(candidate.version) }
+                    .map { qualifier -> Regex("(?i).*[.-]$qualifier[.\\d-+]*") }
+                    .any { it.matches(candidate.version) }
                 if (rejected) {
                     reject("Release candidate")
                 }
             }
         }
+    }
+}
+
+spotless {
+    format("text") {
+        target(".gitignore", ".gitattributes", "*.toml", ".properties")
+        trimTrailingWhitespace()
+        endWithNewline()
+        encoding(StandardCharsets.UTF_8.name())
     }
 }

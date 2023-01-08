@@ -12,5 +12,6 @@ picocli-core = { module = "info.picocli:picocli", version.ref = "picocli" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 kotlinter = "org.jmailen.kotlinter:3.13.0"
+spotless = "com.diffplug.spotless:6.12.1"
 version-catalog-update = "nl.littlerobots.version-catalog-update:0.7.0"
 versions = "com.github.ben-manes.versions:0.44.0"

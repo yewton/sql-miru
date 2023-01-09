@@ -4,7 +4,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
@@ -36,20 +35,7 @@ class App : Callable<Int> {
             commandSpec.commandLine().usage(System.err)
             return 1
         }
-        val fileVisitors: List<FileVisitor>
-        runBlocking {
-            withContext(Dispatchers.IO) {
-                fileVisitors = paths.map {
-                    async {
-                        FileVisitor(it.name).apply {
-                            println("${it.name}: start")
-                            Files.walkFileTree(it, this)
-                            println("${it.name}: done")
-                        }
-                    }
-                }.awaitAll()
-            }
-        }
+        val fileVisitors: List<FileVisitor> = getFileVisitors(paths)
 
         val mutatingTableToModulesMap = mutableMapOf<String, Set<String>>()
         val tableToModulesMap = mutableMapOf<String, Set<String>>()
@@ -75,6 +61,18 @@ class App : Callable<Int> {
         }
 
         return 0
+    }
+
+    private fun getFileVisitors(dirs: List<Path>): List<FileVisitor> = runBlocking(Dispatchers.IO) {
+        dirs.map {
+            async {
+                FileVisitor(it.name).apply {
+                    println("${it.name}: start")
+                    Files.walkFileTree(it, this)
+                    println("${it.name}: done")
+                }
+            }
+        }.awaitAll()
     }
 }
 

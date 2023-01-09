@@ -33,7 +33,7 @@ class SqlFileAnalyzer {
             val statements = CCJSqlParserUtil.parseStatements(sqlBody)
             val job = launch { statements.accept(tableInfoCollector) }
             val tableNames = statements.statements.map {
-                async { tablesNamesFinder.getTableList(it) }
+                async { tablesNamesFinder.getTableList(it).map { it.split(".").last() } }
             }.awaitAll().flatten()
             job.join()
             SqlFileAnalyzeResult(file, tableInfoCollector.tableInfoList, tableNames)

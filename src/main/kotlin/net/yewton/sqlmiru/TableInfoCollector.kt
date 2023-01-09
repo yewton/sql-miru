@@ -42,6 +42,6 @@ class TableInfoCollector(private val sqlFilePath: Path) : AbstractStatementVisit
     }
 
     private fun addToTableInfoList(statement: String, table: Table) {
-        tableInfoList.add(TableInfo(sqlFilePath, statement, table.name))
+        tableInfoList.add(TableInfo(sqlFilePath, statement, table.name.split(".").last()))
     }
 }

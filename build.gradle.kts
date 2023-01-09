@@ -59,7 +59,13 @@ tasks.dependencyUpdates {
 
 spotless {
     format("text") {
-        target(".gitignore", ".gitattributes", "*.toml", "*.properties", "*.yml")
+        target(
+            ".gitignore",
+            ".gitattributes",
+            "**/*.toml",
+            "**/*.properties",
+            "**/*.yml"
+        )
         trimTrailingWhitespace()
         endWithNewline()
         encoding(StandardCharsets.UTF_8.name())

@@ -1,13 +1,11 @@
 package net.yewton.sqlmiru
 
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
-import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.Callable
 import kotlin.io.path.isDirectory
@@ -35,19 +33,21 @@ class App : Callable<Int> {
             commandSpec.commandLine().usage(System.err)
             return 1
         }
-        val fileVisitors = getFileVisitors(paths)
+        val pathToResultsMap = analyze(paths)
 
         val mutatingTableToModulesMap = mutableMapOf<String, Set<String>>()
         val tableToModulesMap = mutableMapOf<String, Set<String>>()
-        fileVisitors.forEach { (path, fileVisitor) ->
-            fileVisitor.mutatingTableInfoList.forEach {
-                mutatingTableToModulesMap.merge(it.tableName, setOf(path.name), Set<String>::plus)
-            }
-            fileVisitor.tableNames.forEach {
-                tableToModulesMap.merge(it, setOf(path.name), Set<String>::plus)
+
+        pathToResultsMap.forEach { (path, results) ->
+            results.forEach { result ->
+                result.mutatingTableInfoList.forEach {
+                    mutatingTableToModulesMap.merge(it.tableName, setOf(path.name), Set<String>::plus)
+                }
+                result.allTableNames.forEach {
+                    tableToModulesMap.merge(it, setOf(path.name), Set<String>::plus)
+                }
             }
         }
-
         tableToModulesMap.forEach { (k, v) ->
             if (1 < v.size) {
                 println("${v.size}\t$k は $v から参照されているよ")
@@ -63,14 +63,15 @@ class App : Callable<Int> {
         return 0
     }
 
-    private fun getFileVisitors(dirs: List<Path>): Map<Path, FileVisitor> = runBlocking(Dispatchers.IO) {
-        dirs.map {
+    private fun analyze(dirs: List<Path>): Map<Path, List<SqlFileAnalyzeResult>> = runBlocking {
+        val sqlFileAnalyzer = SqlFileAnalyzer()
+        dirs.map { dir ->
             async {
-                it to FileVisitor().apply {
-                    println("${it.name}: start")
-                    Files.walkFileTree(it, this)
-                    println("${it.name}: done")
-                }
+                dir to SqlPathFinder().perform(dir).map { sqlPath ->
+                    async {
+                        sqlFileAnalyzer.analyze(sqlPath)
+                    }
+                }.awaitAll()
             }
         }.awaitAll().toMap()
     }

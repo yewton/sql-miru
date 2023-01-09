@@ -35,16 +35,16 @@ class App : Callable<Int> {
             commandSpec.commandLine().usage(System.err)
             return 1
         }
-        val fileVisitors: List<FileVisitor> = getFileVisitors(paths)
+        val fileVisitors = getFileVisitors(paths)
 
         val mutatingTableToModulesMap = mutableMapOf<String, Set<String>>()
         val tableToModulesMap = mutableMapOf<String, Set<String>>()
-        fileVisitors.forEach { fileVisitor ->
+        fileVisitors.forEach { (path, fileVisitor) ->
             fileVisitor.mutatingTableInfoList.forEach {
-                mutatingTableToModulesMap.merge(it.tableName, setOf(it.moduleName), Set<String>::plus)
+                mutatingTableToModulesMap.merge(it.tableName, setOf(path.name), Set<String>::plus)
             }
             fileVisitor.tableNames.forEach {
-                tableToModulesMap.merge(it, setOf(fileVisitor.moduleName), Set<String>::plus)
+                tableToModulesMap.merge(it, setOf(path.name), Set<String>::plus)
             }
         }
 
@@ -63,16 +63,16 @@ class App : Callable<Int> {
         return 0
     }
 
-    private fun getFileVisitors(dirs: List<Path>): List<FileVisitor> = runBlocking(Dispatchers.IO) {
+    private fun getFileVisitors(dirs: List<Path>): Map<Path, FileVisitor> = runBlocking(Dispatchers.IO) {
         dirs.map {
             async {
-                FileVisitor(it.name).apply {
+                it to FileVisitor().apply {
                     println("${it.name}: start")
                     Files.walkFileTree(it, this)
                     println("${it.name}: done")
                 }
             }
-        }.awaitAll()
+        }.awaitAll().toMap()
     }
 }
 

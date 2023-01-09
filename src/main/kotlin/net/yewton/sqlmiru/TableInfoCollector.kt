@@ -10,7 +10,7 @@ import net.sf.jsqlparser.statement.update.Update
 import net.sf.jsqlparser.statement.upsert.Upsert
 import java.nio.file.Path
 
-class TableInfoCollector(private val moduleName: String, private val sqlFilePath: Path) : AbstractStatementVisitor() {
+class TableInfoCollector(private val sqlFilePath: Path) : AbstractStatementVisitor() {
     val tableInfoList = mutableListOf<TableInfo>()
 
     override fun visit(stmts: Statements) {
@@ -42,6 +42,6 @@ class TableInfoCollector(private val moduleName: String, private val sqlFilePath
     }
 
     private fun addToTableInfoList(statement: String, table: Table) {
-        tableInfoList.add(TableInfo(moduleName, sqlFilePath, statement, table.name))
+        tableInfoList.add(TableInfo(sqlFilePath, statement, table.name))
     }
 }

@@ -9,7 +9,7 @@ import java.nio.file.attribute.BasicFileAttributes
 import kotlin.io.path.extension
 import kotlin.io.path.readText
 
-class FileVisitor(val moduleName: String) : SimpleFileVisitor<Path>() {
+class FileVisitor : SimpleFileVisitor<Path>() {
     val mutatingTableInfoList = mutableListOf<TableInfo>()
     val tableNames = mutableListOf<String>()
 
@@ -28,7 +28,7 @@ class FileVisitor(val moduleName: String) : SimpleFileVisitor<Path>() {
         if (file.extension != "sql") {
             return FileVisitResult.CONTINUE
         }
-        val tableInfoCollector = TableInfoCollector(moduleName, file)
+        val tableInfoCollector = TableInfoCollector(file)
         val tablesNamesFinder = TablesNamesFinder()
         val sqlBody = file.readText()
             .replace(Regex("--.*$"), "")
@@ -50,7 +50,7 @@ class FileVisitor(val moduleName: String) : SimpleFileVisitor<Path>() {
         ) {
             fallbackPattern.findAll(sqlBody).forEach {
                 val tableName = it.groupValues[2]
-                mutatingTableInfoList.add(TableInfo(moduleName, file, it.groupValues[1].uppercase(), tableName, true))
+                mutatingTableInfoList.add(TableInfo(file, it.groupValues[1].uppercase(), tableName, true))
                 tableNames.add(tableName)
             }
             fallbackPattern2.findAll(sqlBody).forEach {

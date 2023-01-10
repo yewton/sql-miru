@@ -27,8 +27,8 @@ class SqlFileAnalyzer {
         val tableInfoCollector = TableInfoCollector(file)
         val tablesNamesFinder = MyTablesNamesFinder()
         val sqlBody = file.readText()
-            .replace(Regex("--.*$"), "")
             .replace("\uFEFF", "") // BOM
+            .replace(Regex("--.*"), "")
             .replace(Regex("""/\*.*?\*/""", RegexOption.DOT_MATCHES_ALL), " ")
         try {
             val statements = CCJSqlParserUtil.parseStatements(sqlBody)

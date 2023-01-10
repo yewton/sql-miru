@@ -3,7 +3,6 @@ package net.yewton.sqlmiru
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import net.sf.jsqlparser.parser.CCJSqlParserUtil
 import java.nio.file.Path
 import kotlin.io.path.readText
@@ -23,7 +22,7 @@ class SqlFileAnalyzer {
         }
     }
 
-    suspend fun analyze(file: Path): SqlFileAnalyzeResult = coroutineScope {
+    suspend fun analyze(file: Path): SqlFileAnalyzeResult {
         val tableInfoCollector = TableInfoCollector(file)
         val tablesNamesFinder = MyTablesNamesFinder()
         val sqlBody = file.readText()
@@ -31,20 +30,25 @@ class SqlFileAnalyzer {
             .replace(Regex("--.*"), "")
             .replace(Regex("""/\*.*?\*/""", RegexOption.DOT_MATCHES_ALL), " ")
         try {
-            val statements = CCJSqlParserUtil.parseStatements(sqlBody)
-            val job = launch { statements.accept(tableInfoCollector) }
-            val tableNames = statements.statements.map {
-                async { tablesNamesFinder.getTableList(it).map { it.split(".").last() } }
-            }.awaitAll().flatten()
-            job.join()
-            SqlFileAnalyzeResult(file, tableInfoCollector.tableInfoList, tableNames)
+            return coroutineScope {
+                val statements = CCJSqlParserUtil.parseStatements(sqlBody) ?: throw IllegalArgumentException("hoge")
+
+                val tableInfoList = async {
+                    statements.accept(tableInfoCollector)
+                    tableInfoCollector.tableInfoList
+                }
+                val tableNames = statements.statements.map {
+                    async { tablesNamesFinder.getTableList(it).map { it.split(".").last() } }
+                }
+                SqlFileAnalyzeResult(file, tableInfoList.await(), tableNames.awaitAll().flatten())
+            }
         } catch (
             @Suppress(
                 "TooGenericExceptionCaught",
                 "SwallowedException"
             ) e: Exception
         ) {
-            doFallbackAnalyze(sqlBody, file)
+            return doFallbackAnalyze(sqlBody, file)
         }
     }
 

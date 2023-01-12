@@ -16,9 +16,9 @@ class SqlFileAnalyzer {
         init {
             val regexOptions = setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
             // language=regexp
-            val nonTableNamePattern = """\s+((?!into|from|set|all|wait|nowait|of|dual|when)(?:\w+\.)?\w+)"""
-            fallbackPattern = Regex("""(update|insert|delete|merge|upsert|into)$nonTableNamePattern""", regexOptions)
-            fallbackPattern2 = Regex("""(from|join)$nonTableNamePattern""", regexOptions)
+            val tableNamePattern = """\s+((?!into|from|set|all|wait|nowait|of|dual|when)(?:\w+\.)?\w+)"""
+            fallbackPattern = Regex("""(update|insert|delete|merge|upsert|into)$tableNamePattern""", regexOptions)
+            fallbackPattern2 = Regex("""(from|join)$tableNamePattern""", regexOptions)
         }
     }
 

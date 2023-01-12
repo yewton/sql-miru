@@ -8,9 +8,8 @@ import net.sf.jsqlparser.statement.merge.Merge
 import net.sf.jsqlparser.statement.replace.Replace
 import net.sf.jsqlparser.statement.update.Update
 import net.sf.jsqlparser.statement.upsert.Upsert
-import java.nio.file.Path
 
-class TableInfoCollector(private val sqlFilePath: Path) : AbstractStatementVisitor() {
+class TableInfoCollector: AbstractStatementVisitor() {
     val tableInfoList = mutableListOf<TableInfo>()
 
     override fun visit(stmts: Statements) {
@@ -18,30 +17,30 @@ class TableInfoCollector(private val sqlFilePath: Path) : AbstractStatementVisit
     }
 
     override fun visit(delete: Delete) {
-        addToTableInfoList("DELETE", delete.table)
+        addToTableInfoList(delete.table)
     }
 
     override fun visit(update: Update) {
-        addToTableInfoList("UPDATE", update.table)
+        addToTableInfoList(update.table)
     }
 
     override fun visit(insert: Insert) {
-        addToTableInfoList("INSERT", insert.table)
+        addToTableInfoList(insert.table)
     }
 
     override fun visit(replace: Replace) {
-        addToTableInfoList("REPLACE", replace.table)
+        addToTableInfoList(replace.table)
     }
 
     override fun visit(merge: Merge) {
-        addToTableInfoList("MERGE", merge.table)
+        addToTableInfoList(merge.table)
     }
 
     override fun visit(upsert: Upsert) {
-        addToTableInfoList("UPSERT", upsert.table)
+        addToTableInfoList(upsert.table)
     }
 
-    private fun addToTableInfoList(statement: String, table: Table) {
-        tableInfoList.add(TableInfo(sqlFilePath, statement, table.name.split(".").last()))
+    private fun addToTableInfoList(table: Table) {
+        tableInfoList.add(TableInfo(table.name.split(".").last()))
     }
 }

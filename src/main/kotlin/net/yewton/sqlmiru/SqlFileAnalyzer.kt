@@ -27,15 +27,15 @@ class SqlFileAnalyzer {
                 generateSequence { "(?:$singleTableNamePattern)" }
                     .take(MAX_CONSECUTIVE_TABLES - 1).joinToString("?")
             fallbackPattern = Regex(
-                """(update|insert|delete|merge|upsert|into)$multipleTableNamesPattern""",
+                """(?:update|insert|delete|merge|upsert|into)$multipleTableNamesPattern""",
                 regexOptions
             )
-            fallbackPattern2 = Regex("""(from|join)$singleTableNamePattern""", regexOptions)
+            fallbackPattern2 = Regex("""(?:from|join)$singleTableNamePattern""", regexOptions)
         }
     }
 
     suspend fun analyze(file: Path): SqlFileAnalyzeResult {
-        val tableInfoCollector = TableInfoCollector(file)
+        val tableInfoCollector = TableInfoCollector()
         val tablesNamesFinder = MyTablesNamesFinder()
         val sqlBody = file.readText()
             .replace("\uFEFF", "") // BOM
@@ -66,13 +66,12 @@ class SqlFileAnalyzer {
 
     private fun doFallbackAnalyze(sqlBody: String, file: Path): SqlFileAnalyzeResult {
         val mutatingTableInfoList = fallbackPattern.findAll(sqlBody).flatMap {
-            val statement = it.groupValues[1].uppercase()
-            it.groupValues.drop(2)
+            it.groupValues.drop(1)
                 .filterNot(String::isBlank)
-                .map { tableName -> TableInfo(file, statement, tableName, true) }
+                .map { tableName -> TableInfo(tableName, true) }
         }.toList()
         val allTableNames = fallbackPattern2.findAll(sqlBody).flatMap {
-            listOf(it.groupValues[2]) + mutatingTableInfoList.map { info -> info.tableName }
+            listOf(it.groupValues[1]) + mutatingTableInfoList.map { info -> info.tableName }
         }.toList()
 
         return SqlFileAnalyzeResult(file, mutatingTableInfoList, allTableNames)

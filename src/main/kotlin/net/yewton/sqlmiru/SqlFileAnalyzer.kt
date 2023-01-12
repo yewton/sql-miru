@@ -10,15 +10,27 @@ import kotlin.io.path.readText
 class SqlFileAnalyzer {
 
     companion object {
+        private const val MAX_CONSECUTIVE_TABLES = 10
         private val fallbackPattern: Regex
         private val fallbackPattern2: Regex
 
         init {
             val regexOptions = setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
+            val reservedWordsPattern = listOf(
+                "into", "from", "set", "all", "wait", "nowait", "of", "dual",
+                "when", "values", "using", "limit", "is", "null", "union",
+                "as", "with", "where", "select"
+            ).joinToString("|")
             // language=regexp
-            val tableNamePattern = """\s+((?!into|from|set|all|wait|nowait|of|dual|when)(?:\w+\.)?\w+)"""
-            fallbackPattern = Regex("""(update|insert|delete|merge|upsert|into)$tableNamePattern""", regexOptions)
-            fallbackPattern2 = Regex("""(from|join)$tableNamePattern""", regexOptions)
+            val singleTableNamePattern = """\s+(?!$reservedWordsPattern)(?:\w+\.)?(\w+)"""
+            val multipleTableNamesPattern = singleTableNamePattern +
+                generateSequence { "(?:$singleTableNamePattern)" }
+                    .take(MAX_CONSECUTIVE_TABLES - 1).joinToString("?")
+            fallbackPattern = Regex(
+                """(update|insert|delete|merge|upsert|into)$multipleTableNamesPattern""",
+                regexOptions
+            )
+            fallbackPattern2 = Regex("""(from|join)$singleTableNamePattern""", regexOptions)
         }
     }
 
@@ -53,8 +65,11 @@ class SqlFileAnalyzer {
     }
 
     private fun doFallbackAnalyze(sqlBody: String, file: Path): SqlFileAnalyzeResult {
-        val mutatingTableInfoList = fallbackPattern.findAll(sqlBody).map {
-            TableInfo(file, it.groupValues[1].uppercase(), it.groupValues[2], true)
+        val mutatingTableInfoList = fallbackPattern.findAll(sqlBody).flatMap {
+            val statement = it.groupValues[1].uppercase()
+            it.groupValues.drop(2)
+                .filterNot(String::isBlank)
+                .map { tableName -> TableInfo(file, statement, tableName, true) }
         }.toList()
         val allTableNames = fallbackPattern2.findAll(sqlBody).flatMap {
             listOf(it.groupValues[2]) + mutatingTableInfoList.map { info -> info.tableName }

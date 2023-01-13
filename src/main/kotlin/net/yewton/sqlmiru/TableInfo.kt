@@ -1,6 +1,9 @@
 package net.yewton.sqlmiru
 
+@JvmInline
+value class TableName(val value: String)
+
 data class TableInfo(
-    val tableName: String,
-    val isInferred: Boolean = false
+    val tableName: TableName,
+    val collectedBy: Set<String>
 )

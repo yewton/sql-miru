@@ -23,58 +23,61 @@ class App : Callable<Int> {
     lateinit var commandSpec: CommandLine.Model.CommandSpec
 
     @Parameters(description = ["TBW"])
-    var paths: List<Path> = emptyList()
+    var dirs: List<Path> = emptyList()
 
     override fun call(): Int {
-        val nonDirectoryPaths = paths.filter { !it.isDirectory() }
-        if (paths.isEmpty() || nonDirectoryPaths.isNotEmpty()) {
+        val nonDirectoryPaths = dirs.filter { !it.isDirectory() }
+        if (dirs.isEmpty() || nonDirectoryPaths.isNotEmpty()) {
             System.err.println("ディレクトリを指定してね")
             nonDirectoryPaths.forEach { System.err.println("$it はディレクトリじゃないよ") }
             commandSpec.commandLine().usage(System.err)
             return 1
         }
-        val pathToResultsMap = analyze(paths)
 
-        val mutatingTableToModulesMap = mutableMapOf<String, Set<String>>()
-        val tableToModulesMap = mutableMapOf<String, Set<String>>()
-
-        pathToResultsMap.forEach { (path, results) ->
-            results.forEach { result ->
-                result.mutatingTableInfoList.forEach {
-                    mutatingTableToModulesMap.merge(it.tableName, setOf(path.name), Set<String>::plus)
-                }
-                result.allTableNames.forEach {
-                    tableToModulesMap.merge(it, setOf(path.name), Set<String>::plus)
-                }
+        val dirToResultList = analyze(dirs)
+        val initial = emptyMap<TableName, Set<String>>()
+        val (mutatedTableToDirsMap, anyTableToDirsMap) =
+            dirToResultList.fold(Pair(initial, initial)) { (mutated, any), (dir, result) ->
+                Pair(
+                    tableNameToDirMap(dir.name, result.mutatedTableInfoList, mutated),
+                    tableNameToDirMap(dir.name, result.anyTableInfoList, any)
+                )
             }
-        }
-        tableToModulesMap.forEach { (k, v) ->
+        println("---------- 参照 ----------")
+        anyTableToDirsMap.forEach { (k, v) ->
             if (1 < v.size) {
-                println("${v.size}\t$k は $v から参照されているよ")
+                println("${v.size}\t${k.value}\t${v.joinToString("\t")}")
             }
         }
-
-        mutatingTableToModulesMap.forEach { (k, v) ->
+        println("---------- 変更 ----------")
+        mutatedTableToDirsMap.forEach { (k, v) ->
             if (1 < v.size) {
-                println("${v.size}\t$k は $v から変更されているよ")
+                println("${v.size}\t${k.value}\t${v.joinToString("\t")}")
             }
         }
-
         return 0
     }
 
-    private fun analyze(dirs: List<Path>): Map<Path, List<SqlFileAnalyzeResult>> = runBlocking {
+    private fun analyze(dirs: List<Path>): List<Pair<Path, SqlFileAnalyzeResult>> = runBlocking {
         val sqlFileAnalyzer = SqlFileAnalyzer()
-        dirs.map { dir ->
+        dirs.flatMap { dir ->
             async {
-                dir to SqlPathFinder().perform(dir).map { sqlPath ->
-                    async {
-                        sqlFileAnalyzer.analyze(sqlPath)
-                    }
+                SqlPathFinder().perform(dir).map { sqlPath ->
+                    async { dir to sqlFileAnalyzer.analyze(sqlPath) }
                 }.awaitAll()
-            }
-        }.awaitAll().toMap()
+            }.await()
+        }
     }
+
+    private fun tableNameToDirMap(
+        dirName: String,
+        tableInfoList: List<TableInfo>,
+        initial: Map<TableName, Set<String>>
+    ): Map<TableName, Set<String>> =
+        tableInfoList.fold(initial) { acc, (tableName, _) ->
+            val newValue = acc.getOrElse(tableName) { emptySet() } + dirName
+            acc + (tableName to newValue)
+        }
 }
 
 @Suppress("SpreadOperator")

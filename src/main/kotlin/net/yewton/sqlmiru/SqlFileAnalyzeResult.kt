@@ -4,6 +4,6 @@ import java.nio.file.Path
 
 data class SqlFileAnalyzeResult(
     val filePath: Path,
-    val mutatingTableInfoList: List<TableInfo>,
-    val allTableNames: List<String>
+    val mutatedTableInfoList: List<TableInfo>,
+    val anyTableInfoList: List<TableInfo>
 )

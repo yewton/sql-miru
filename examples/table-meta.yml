@@ -1,0 +1,14 @@
+tablesMetadata:
+  - physicalName: shared_table1
+    logicalName: Very Important Table
+    referenceURL: https://example.org
+    group: Group X
+  - physicalName: shared_table2
+    logicalName: Slightly Important Table
+    group: Group X
+  - physicalName: shared_table3
+    group: Group X
+  - physicalName: shared_table4
+    referenceURL: https://example.net
+  - physicalName: shared_table5
+    group: Group Y

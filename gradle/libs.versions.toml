@@ -2,9 +2,12 @@
 detekt = "1.22.0"
 kotlin = "1.8.0"
 picocli = "4.7.0"
+hoplite = "2.7.0"
 
 [libraries]
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
+hoplite-core = { module = "com.sksamuel.hoplite:hoplite-core", version.ref = "hoplite" }
+hoplite-yaml = { module = "com.sksamuel.hoplite:hoplite-yaml", version.ref = "hoplite" }
 jsqlparser = "com.github.jsqlparser:jsqlparser:4.5"
 kotlinx-coroutines-core-jvm = "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4"
 picocli-codegen = { module = "info.picocli:picocli-codegen", version.ref = "picocli" }

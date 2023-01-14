@@ -22,6 +22,8 @@ dependencies {
     implementation(libs.picocli.core)
     implementation(libs.jsqlparser)
     implementation(libs.kotlinx.coroutines.core.jvm)
+    implementation(libs.hoplite.core)
+    implementation(libs.hoplite.yaml)
     kapt(libs.picocli.codegen)
     detektPlugins(libs.detekt.formatting)
 }

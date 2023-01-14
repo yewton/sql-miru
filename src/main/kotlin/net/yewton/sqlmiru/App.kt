@@ -34,50 +34,84 @@ class App : Callable<Int> {
             return 1
         }
 
-        val dirToResultList = analyze(dirs)
-        val initial = emptyMap<TableName, Set<String>>()
-        val (mutatedTableToDirsMap, anyTableToDirsMap) =
-            dirToResultList.fold(Pair(initial, initial)) { (mutated, any), (dir, result) ->
-                Pair(
-                    tableNameToDirMap(dir.name, result.mutatedTableInfoList, mutated),
-                    tableNameToDirMap(dir.name, result.anyTableInfoList, any)
-                )
+        buildPrintRows(dirs)
+            .sortedWith(Row.comparator)
+            .forEach {
+                println(it)
             }
-        println("---------- 参照 ----------")
-        anyTableToDirsMap.forEach { (k, v) ->
-            if (1 < v.size) {
-                println("${v.size}\t${k.value}\t${v.joinToString("\t")}")
-            }
-        }
-        println("---------- 変更 ----------")
-        mutatedTableToDirsMap.forEach { (k, v) ->
-            if (1 < v.size) {
-                println("${v.size}\t${k.value}\t${v.joinToString("\t")}")
-            }
-        }
         return 0
     }
 
-    private fun analyze(dirs: List<Path>): List<Pair<Path, SqlFileAnalyzeResult>> = runBlocking {
+    private fun analyze(dirs: List<Path>): List<FlatData> = runBlocking {
         val sqlFileAnalyzer = SqlFileAnalyzer()
         dirs.flatMap { dir ->
             async {
                 SqlPathFinder().perform(dir).map { sqlPath ->
-                    async { dir to sqlFileAnalyzer.analyze(sqlPath) }
+                    async { sqlFileAnalyzer.analyze(sqlPath) }
                 }.awaitAll()
-            }.await()
+            }.await().flatMap { result ->
+                val categorized = result.mutatedTableInfoList.map { Pair("変更", it) } +
+                    result.anyTableInfoList.map { Pair("参照", it) }
+                categorized.map { (category, info) ->
+                    FlatData(category, dir, result.filePath, info)
+                }
+            }
         }
     }
 
-    private fun tableNameToDirMap(
-        dirName: String,
-        tableInfoList: List<TableInfo>,
-        initial: Map<TableName, Set<String>>
-    ): Map<TableName, Set<String>> =
-        tableInfoList.fold(initial) { acc, (tableName, _) ->
-            val newValue = acc.getOrElse(tableName) { emptySet() } + dirName
-            acc + (tableName to newValue)
-        }
+    private fun buildPrintRows(dirs: List<Path>): List<Row> =
+        analyze(dirs).groupBy { Pair(it.category, it.table.tableName) }
+            .map { (key, flatDataList) ->
+                val (category, tableName) = key
+                val dirSet = flatDataList.map { it.dir }.toSet()
+                val dirCols = dirs.map {
+                    if (dirSet.contains(it)) it.name else ""
+                }
+                val collectedBy = flatDataList.map { it.table.collectedBy }
+                    .reduce { a, b -> a + b }
+                Row(
+                    category,
+                    "未分類",
+                    tableName.value,
+                    "",
+                    "",
+                    dirCols,
+                    collectedBy.sorted()
+                )
+            }
+}
+
+private data class FlatData(
+    val category: String,
+    val dir: Path,
+    val file: Path,
+    val table: TableInfo
+)
+
+private data class Row(
+    val category: String,
+    val group: String,
+    val physicalName: String,
+    val logicalName: String,
+    val url: String,
+    val dirs: List<String>,
+    val collectedBy: List<String>
+) {
+    companion object {
+        val comparator: Comparator<Row> = Comparator.comparing(Row::category)
+            .thenComparing(Row::group)
+            .thenComparingInt(Row::dirsNum)
+            .reversed()
+            .thenComparing(Row::physicalName)
+    }
+
+    val dirsNum = dirs.filter(String::isNotBlank).size
+
+    override fun toString(): String {
+        val cols = listOf(category, dirsNum, group, physicalName, logicalName, url) +
+            dirs + collectedBy
+        return cols.joinToString("\t")
+    }
 }
 
 @Suppress("SpreadOperator")

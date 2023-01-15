@@ -30,7 +30,7 @@ class SqlFileAnalyzer {
     private fun regexTableInfo(table: String): TableInfo = TableInfo(TableName(table), setOf("regex"))
 
     private fun tableInfoCollectorBuilderFor(sqlBody: String):
-                ((String) -> TableInfo) -> (TablesNamesCollector) -> List<TableInfo> = { buildTableInfo ->
+        ((String) -> TableInfo) -> (TablesNamesCollector) -> List<TableInfo> = { buildTableInfo ->
         { tc -> tc.collect(sqlBody).map(buildTableInfo) }
     }
 

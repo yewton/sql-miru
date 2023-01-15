@@ -8,30 +8,36 @@ import kotlin.io.path.readText
 
 class SqlFileAnalyzer {
 
+    companion object {
+        private val mutatedTablesInfoCollectors: List<(String) -> List<TableInfo>>
+        private val otherTablesInfoCollectors: List<(String) -> List<TableInfo>>
+
+        init {
+            fun tablesInfoCollector(
+                tnc: TablesNamesCollector,
+                collectedBy: String
+            ): (String) -> List<TableInfo> = { sqlBody ->
+                tnc.collect(sqlBody).map { TableInfo(TableName(it), setOf(collectedBy)) }
+            }
+
+            mutatedTablesInfoCollectors = listOf(
+                tablesInfoCollector(JSQLParserMutatedTablesNamesCollector(), "jsqlParser"),
+                tablesInfoCollector(RegexMutatedTablesNamesCollector(), "regex")
+            )
+            otherTablesInfoCollectors = listOf(
+                tablesInfoCollector(JSQLParserAnyTablesNamesCollector(), "jsqlParser"),
+                tablesInfoCollector(RegexSelectedTablesNamesCollector(), "regex")
+            )
+        }
+    }
+
     suspend fun analyze(file: Path): SqlFileAnalyzeResult = coroutineScope {
         val sqlBody = file.readText().replace("\uFEFF", "") // BOM
-        val tableInfoCollectorBuilder = tableInfoCollectorBuilderFor(sqlBody)
-        val collectJsqlTableInfo = tableInfoCollectorBuilder(::jsqlTableInfo)
-        val collectRegexTableInfo = tableInfoCollectorBuilder(::regexTableInfo)
-        val mutatedTablesDeferred = listOf(
-            async { collectJsqlTableInfo(JSQLParserMutatedTablesNamesCollector()) },
-            async { collectRegexTableInfo(RegexMutatedTablesNamesCollector()) }
-        )
-        val otherTablesDeferred = listOf(
-            async { collectJsqlTableInfo(JSQLParserAnyTablesNamesCollector()) },
-            async { collectRegexTableInfo(RegexSelectedTablesNamesCollector()) }
-        )
+        val mutatedTablesDeferred = mutatedTablesInfoCollectors.map { async { it(sqlBody) } }
+        val otherTablesDeferred = otherTablesInfoCollectors.map { async { it(sqlBody) } }
         val mutatedTables = mutatedTablesDeferred.awaitAll().flatten()
         val anyTables = mutatedTables + otherTablesDeferred.awaitAll().flatten()
         SqlFileAnalyzeResult(file, aggregateCollectedBy(mutatedTables), aggregateCollectedBy(anyTables))
-    }
-    private fun jsqlTableInfo(table: String): TableInfo = TableInfo(TableName(table), setOf("jsqlParser"))
-
-    private fun regexTableInfo(table: String): TableInfo = TableInfo(TableName(table), setOf("regex"))
-
-    private fun tableInfoCollectorBuilderFor(sqlBody: String):
-        ((String) -> TableInfo) -> (TablesNamesCollector) -> List<TableInfo> = { buildTableInfo ->
-        { tc -> tc.collect(sqlBody).map(buildTableInfo) }
     }
 
     private fun aggregateCollectedBy(

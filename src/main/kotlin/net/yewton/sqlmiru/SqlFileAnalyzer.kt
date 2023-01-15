@@ -18,13 +18,13 @@ class SqlFileAnalyzer {
             }
 
             mutatedTablesInfoCollectors = listOf(
-                tablesInfoCollector(JSQLParserMutatedTablesNamesCollector()),
-                tablesInfoCollector(RegexMutatedTablesNamesCollector())
-            )
+                JSQLParserMutatedTablesNamesCollector(),
+                RegexMutatedTablesNamesCollector()
+            ).map(::tablesInfoCollector)
             otherTablesInfoCollectors = listOf(
-                tablesInfoCollector(JSQLParserAnyTablesNamesCollector()),
-                tablesInfoCollector(RegexSelectedTablesNamesCollector())
-            )
+                JSQLParserAnyTablesNamesCollector(),
+                RegexSelectedTablesNamesCollector()
+            ).map(::tablesInfoCollector)
         }
     }
 

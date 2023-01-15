@@ -13,20 +13,17 @@ class SqlFileAnalyzer {
         private val otherTablesInfoCollectors: List<(String) -> List<TableInfo>>
 
         init {
-            fun tablesInfoCollector(
-                tnc: TablesNamesCollector,
-                collectedBy: String
-            ): (String) -> List<TableInfo> = { sqlBody ->
-                tnc.collect(sqlBody).map { TableInfo(TableName(it), setOf(collectedBy)) }
+            fun tablesInfoCollector(tnc: TablesNamesCollector): (String) -> List<TableInfo> = { sqlBody ->
+                tnc.collect(sqlBody).map { TableInfo(TableName(it), setOf(tnc::class.java.simpleName)) }
             }
 
             mutatedTablesInfoCollectors = listOf(
-                tablesInfoCollector(JSQLParserMutatedTablesNamesCollector(), "jsqlParser"),
-                tablesInfoCollector(RegexMutatedTablesNamesCollector(), "regex")
+                tablesInfoCollector(JSQLParserMutatedTablesNamesCollector()),
+                tablesInfoCollector(RegexMutatedTablesNamesCollector())
             )
             otherTablesInfoCollectors = listOf(
-                tablesInfoCollector(JSQLParserAnyTablesNamesCollector(), "jsqlParser"),
-                tablesInfoCollector(RegexSelectedTablesNamesCollector(), "regex")
+                tablesInfoCollector(JSQLParserAnyTablesNamesCollector()),
+                tablesInfoCollector(RegexSelectedTablesNamesCollector())
             )
         }
     }

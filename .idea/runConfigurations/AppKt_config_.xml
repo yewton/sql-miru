@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="AppKt config あり" type="JetRunConfigurationType">
+    <option name="MAIN_CLASS_NAME" value="net.yewton.sqlmiru.AppKt" />
+    <module name="sql-miru.main" />
+    <option name="PROGRAM_PARAMETERS" value="examples/module-a examples/module-b examples/module-c --config examples/config.yml" />
+    <shortenClasspath name="NONE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

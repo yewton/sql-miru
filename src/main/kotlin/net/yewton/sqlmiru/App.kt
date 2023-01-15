@@ -1,11 +1,15 @@
 package net.yewton.sqlmiru
 
+import com.sksamuel.hoplite.ConfigLoaderBuilder
+import com.sksamuel.hoplite.addFileSource
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import picocli.CommandLine
 import picocli.CommandLine.Command
+import picocli.CommandLine.Option
 import picocli.CommandLine.Parameters
+import java.io.File
 import java.nio.file.Path
 import java.util.concurrent.Callable
 import kotlin.io.path.isDirectory
@@ -25,6 +29,9 @@ class App : Callable<Int> {
     @Parameters(description = ["TBW"])
     var dirs: List<Path> = emptyList()
 
+    @Option(names = ["-c", "--config"])
+    var configFile: File? = null
+
     override fun call(): Int {
         val nonDirectoryPaths = dirs.filter { !it.isDirectory() }
         if (dirs.isEmpty() || nonDirectoryPaths.isNotEmpty()) {
@@ -33,8 +40,14 @@ class App : Callable<Int> {
             commandSpec.commandLine().usage(System.err)
             return 1
         }
+        val config = configFile?.let {
+            ConfigLoaderBuilder.default()
+                .addFileSource(it)
+                .build()
+                .loadConfigOrThrow<Config>()
+        }
 
-        buildPrintRows(dirs)
+        buildPrintRows(dirs, config)
             .sortedWith(Row.comparator)
             .forEach {
                 println(it)
@@ -59,7 +72,7 @@ class App : Callable<Int> {
         }
     }
 
-    private fun buildPrintRows(dirs: List<Path>): List<Row> =
+    private fun buildPrintRows(dirs: List<Path>, config: Config?): List<Row> =
         analyze(dirs).groupBy { Pair(it.category, it.table.tableName) }
             .map { (key, flatDataList) ->
                 val (category, tableName) = key
@@ -69,12 +82,13 @@ class App : Callable<Int> {
                 }
                 val collectedBy = flatDataList.map { it.table.collectedBy }
                     .reduce { a, b -> a + b }
+                val metadata = config?.findTableMetadata(tableName.value)
                 Row(
                     category,
-                    "未分類",
+                    metadata?.group ?: "未分類",
                     tableName.value,
-                    "",
-                    "",
+                    metadata?.logicalName ?: "",
+                    metadata?.referenceURL?.toString() ?: "",
                     dirCols,
                     collectedBy.sorted()
                 )

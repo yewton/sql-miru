@@ -9,7 +9,7 @@ abstract class JSQLParserTablesNamesCollector : TablesNamesCollector {
         return try {
             val statements = CCJSqlParserUtil.parseStatements(body) ?: return emptyList()
             statements.statements.flatMap {
-                collect(it)
+                collect(it).map { tableName -> tableName.split(".").last() }
             }
         } catch (
             @Suppress(

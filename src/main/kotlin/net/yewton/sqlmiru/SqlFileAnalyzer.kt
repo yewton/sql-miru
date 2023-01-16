@@ -14,7 +14,7 @@ class SqlFileAnalyzer {
 
         init {
             fun tablesInfoCollector(tnc: TablesNamesCollector): (String) -> List<TableInfo> = { sqlBody ->
-                tnc.collect(sqlBody).map { TableInfo(TableName(it), setOf(tnc::class.java.simpleName)) }
+                tnc.collect(sqlBody).map { TableInfo(TableName(it.uppercase()), setOf(tnc::class.java.simpleName)) }
             }
 
             mutatedTablesInfoCollectors = listOf(

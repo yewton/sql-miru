@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.version.catalog.update)
     alias(libs.plugins.detekt)
     alias(libs.plugins.spotless)
+    application
 }
 
 group = "net.yewton"
@@ -26,6 +27,10 @@ dependencies {
     implementation(libs.hoplite.yaml)
     kapt(libs.picocli.codegen)
     detektPlugins(libs.detekt.formatting)
+}
+
+application {
+    mainClass.set("net.yewton.sqlmiru.AppKt")
 }
 
 kapt {
